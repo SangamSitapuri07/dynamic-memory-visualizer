@@ -52,3 +52,6 @@ python -m http.server 8000
 npx serve
 
 # Then open: http://localhost:8000
+
+
+To run visit - https://sangamsitapuri07.github.io/dynamic-memory-visualizer/
