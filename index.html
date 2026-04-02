@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Management Visualizer Pro</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Tutorial Overlay -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display: none;">
+        <div class="tutorial-box">
+            <div class="tutorial-header">
+                <h3 class="tutorial-title">📚 Tutorial</h3>
+                <button class="tutorial-close" id="tutorialClose">×</button>
+            </div>
+            <div class="tutorial-content" id="tutorialContent"></div>
+            <div class="tutorial-footer">
+                <button class="btn btn-secondary" id="tutorialPrev">← Previous</button>
+                <span class="tutorial-progress" id="tutorialProgress"></span>
+                <button class="btn btn-primary" id="tutorialNext">Next →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <button class="modal-close" id="shortcutsClose">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-grid">
+                    <div class="shortcut-item">
+                        <kbd>Space</kbd>
+                        <span>Run/Pause Simulation</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>→</kbd>
+                        <span>Next Step</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>←</kbd>
+                        <span>Previous Step</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>R</kbd>
+                        <span>Reset</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>C</kbd>
+                        <span>Compare Algorithms</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>T</kbd>
+                        <span>Toggle Theme</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>H</kbd>
+                        <span>Show Help</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <kbd>S</kbd>
+                        <span>Save Configuration</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-left">
+                <h1 class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <rect x="3" y="3" width="7" height="7" stroke-width="2"/>
+                        <rect x="14" y="3" width="7" height="7" stroke-width="2"/>
+                        <rect x="3" y="14" width="7" height="7" stroke-width="2"/>
+                        <rect x="14" y="14" width="7" height="7" stroke-width="2"/>
+                    </svg>
+                    <span class="logo-text">
+                        <span class="logo-main">Memory Manager</span>
+                        <span class="logo-sub">Pro Visualizer</span>
+                    </span>
+                </h1>
+            </div>
+            
+            <div class="header-right">
+                <div class="theme-selector">
+                    <button class="theme-btn" data-theme="light" title="Light Theme">☀️</button>
+                    <button class="theme-btn" data-theme="dark" title="Dark Theme">🌙</button>
+                    <button class="theme-btn" data-theme="blue" title="Ocean Theme">🌊</button>
+                    <button class="theme-btn" data-theme="purple" title="Purple Theme">💜</button>
+                </div>
+                <button class="icon-btn" id="tutorialBtn" title="Start Tutorial">📚</button>
+                <button class="icon-btn" id="shortcutsBtn" title="Keyboard Shortcuts">⌨️</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        
+        <!-- Quick Actions Bar -->
+        <section class="quick-actions-bar">
+            <div class="quick-actions-left">
+                <button class="quick-btn" id="newSimBtn">
+                    <span class="quick-icon">➕</span>
+                    <span>New</span>
+                </button>
+                <button class="quick-btn" id="saveConfigBtn">
+                    <span class="quick-icon">💾</span>
+                    <span>Save</span>
+                </button>
+                <button class="quick-btn" id="loadConfigBtn">
+                    <span class="quick-icon">📂</span>
+                    <span>Load</span>
+                </button>
+                <div class="quick-divider"></div>
+                <select class="quick-select" id="presetSelect">
+                    <option value="">Load Preset...</option>
+                    <option value="simple">Simple Example</option>
+                    <option value="belady">Belady's Anomaly</option>
+                    <option value="locality">Locality of Reference</option>
+                    <option value="thrashing">Thrashing Example</option>
+                    <option value="optimal">Optimal vs FIFO</option>
+                </select>
+            </div>
+            <div class="quick-actions-right">
+                <div class="performance-indicator">
+                    <span class="perf-label">Performance:</span>
+                    <div class="perf-bar">
+                        <div class="perf-fill" id="perfFill" style="width: 0%"></div>
+                    </div>
+                    <span class="perf-value" id="perfValue">0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Control Panel -->
+        <section class="card control-panel">
+            <div class="panel-header">
+                <h2 class="section-title">
+                    <span class="title-icon">⚙️</span>
+                    Configuration
+                </h2>
+                <button class="collapse-btn" data-target="controlContent">
+                    <span class="collapse-icon">−</span>
+                </button>
+            </div>
+            
+            <div class="panel-content" id="controlContent">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="numFrames">
+                            Number of Frames
+                            <span class="label-badge">Required</span>
+                        </label>
+                        <div class="input-with-controls">
+                            <button class="input-control-btn" id="decreaseFrames">−</button>
+                            <input 
+                                type="number" 
+                                id="numFrames" 
+                                min="1" 
+                                max="10" 
+                                value="3"
+                                placeholder="1-10"
+                            >
+                            <button class="input-control-btn" id="increaseFrames">+</button>
+                        </div>
+                        <span class="input-hint">
+                            <span class="hint-icon">ℹ️</span>
+                            Physical memory frames available (1-10)
+                        </span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="referenceString">
+                            Page Reference String
+                            <span class="label-badge">Required</span>
+                        </label>
+                        <textarea 
+                            id="referenceString" 
+                            rows="1"
+                            placeholder="e.g., 7,0,1,2,0,3,0,4,2,3,0,3,2"
+                        >7,0,1,2,0,3,0,4,2,3,0,3,2</textarea>
+                        <div class="input-actions">
+                            <button class="input-action-btn" id="generateRandomBtn">
+                                🎲 Generate Random
+                            </button>
+                            <button class="input-action-btn" id="validateBtn">
+                                ✓ Validate
+                            </button>
+                        </div>
+                        <span class="input-hint">
+                            <span class="hint-icon">ℹ️</span>
+                            Comma-separated page numbers (0-99)
+                        </span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="algorithm">
+                            Page Replacement Algorithm
+                            <span class="label-badge info">Choose One</span>
+                        </label>
+                        <select id="algorithm" class="algorithm-select">
+                            <optgroup label="Basic Algorithms">
+                                <option value="fifo">FIFO (First-In-First-Out)</option>
+                                <option value="lru">LRU (Least Recently Used)</option>
+                            </optgroup>
+                            <optgroup label="Advanced Algorithms">
+                                <option value="optimal">Optimal (Bélády's Algorithm)</option>
+                                <option value="clock">Clock (Second Chance)</option>
+                                <option value="nfu">NFU (Not Frequently Used)</option>
+                            </optgroup>
+                        </select>
+                        <div class="algorithm-info" id="algorithmInfo">
+                            <strong>FIFO:</strong> Replaces the oldest page in memory. Simple but may suffer from Belady's Anomaly.
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="speed">
+                            Animation Speed
+                            <span class="speed-value" id="speedValue">800ms</span>
+                        </label>
+                        <input 
+                            type="range" 
+                            id="speed" 
+                            min="100" 
+                            max="2000" 
+                            value="800"
+                            step="100"
+                        >
+                        <div class="speed-labels">
+                            <span>Fast</span>
+                            <span>Medium</span>
+                            <span>Slow</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="advanced-options">
+                    <button class="advanced-toggle" id="advancedToggle">
+                        <span class="toggle-icon">▶</span>
+                        Advanced Options
+                    </button>
+                    <div class="advanced-content" id="advancedContent" style="display: none;">
+                        <div class="input-grid">
+                            <div class="input-group">
+                                <label>
+                                    <input type="checkbox" id="showStepDelay">
+                                    Show Step Delay
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <label>
+                                    <input type="checkbox" id="highlightReplacement" checked>
+                                    Highlight Page Replacement
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <label>
+                                    <input type="checkbox" id="soundEffects">
+                                    Sound Effects
+                                </label>
+                            </div>
+                            <div class="input-group">
+                                <label>
+                                    <input type="checkbox" id="autoExport">
+                                    Auto-Export Results
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="button-group">
+                    <button class="btn btn-primary btn-large" id="runBtn">
+                        <span class="btn-icon">▶</span>
+                        <span class="btn-text">Run Simulation</span>
+                    </button>
+                    <button class="btn btn-secondary btn-large" id="stepBtn">
+                        <span class="btn-icon">⏭</span>
+                        <span class="btn-text">Next Step</span>
+                    </button>
+                    <button class="btn btn-tertiary" id="prevStepBtn">
+                        <span class="btn-icon">⏮</span>
+                        <span class="btn-text">Prev Step</span>
+                    </button>
+                    <button class="btn btn-tertiary" id="resetBtn">
+                        <span class="btn-icon">↻</span>
+                        <span class="btn-text">Reset</span>
+                    </button>
+                    <button class="btn btn-outline" id="compareBtn">
+                        <span class="btn-icon">📊</span>
+                        <span class="btn-text">Compare All</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Performance Dashboard -->
+        <section class="dashboard-grid">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        📄
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Current Step</div>
+                    <div class="stat-value" id="currentStep">0</div>
+                    <div class="stat-change">of <span id="totalSteps">0</span></div>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="miniChart1" width="100" height="40"></canvas>
+                </div>
+            </div>
+
+            <div class="stat-card stat-danger">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        ❌
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Page Faults</div>
+                    <div class="stat-value" id="pageFaults">0</div>
+                    <div class="stat-change" id="faultChange">-</div>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="miniChart2" width="100" height="40"></canvas>
+                </div>
+            </div>
+
+            <div class="stat-card stat-success">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        ✓
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Page Hits</div>
+                    <div class="stat-value" id="pageHits">0</div>
+                    <div class="stat-change" id="hitChange">-</div>
+                </div>
+                <div class="stat-chart">
+                    <canvas id="miniChart3" width="100" height="40"></canvas>
+                </div>
+            </div>
+
+            <div class="stat-card stat-info">
+                <div class="stat-icon-wrapper">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        📈
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-label">Hit Ratio</div>
+                    <div class="stat-value" id="hitRatio">0%</div>
+                    <div class="stat-change" id="ratioChange">-</div>
+                </div>
+                <div class="stat-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ratioProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualization Tabs -->
+        <section class="card visualization-card">
+            <div class="tab-header">
+                <div class="tabs">
+                    <button class="tab active" data-tab="frames">
+                        <span class="tab-icon">🗄️</span>
+                        Frame View
+                    </button>
+                    <button class="tab" data-tab="timeline">
+                        <span class="tab-icon">⏱️</span>
+                        Timeline
+                    </button>
+                    <button class="tab" data-tab="heatmap">
+                        <span class="tab-icon">🔥</span>
+                        Heat Map
+                    </button>
+                    <button class="tab" data-tab="table">
+                        <span class="tab-icon">📋</span>
+                        Table View
+                    </button>
+                </div>
+            </div>
+
+            <!-- Frames Tab -->
+            <div class="tab-content active" id="framesTab">
+                <div class="current-page-indicator">
+                    <div class="indicator-content">
+                        <span class="indicator-label">Current Page Request:</span>
+                        <span class="current-page-value" id="currentPage">-</span>
+                        <span class="page-status" id="pageStatus"></span>
+                    </div>
+                    <div class="indicator-stats">
+                        <span class="mini-stat">
+                            <span class="mini-label">Algorithm:</span>
+                            <span class="mini-value" id="currentAlgorithm">-</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="frames-wrapper">
+                    <div class="frames-container" id="framesContainer">
+                        <!-- Frames will be dynamically generated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Tab -->
+            <div class="tab-content" id="timelineTab">
+                <div class="timeline-controls">
+                    <button class="timeline-control-btn" id="timelineZoomOut">−</button>
+                    <span class="timeline-zoom-level">100%</span>
+                    <button class="timeline-control-btn" id="timelineZoomIn">+</button>
+                </div>
+                <div class="timeline-wrapper">
+                    <div class="timeline" id="timeline">
+                        <!-- Timeline steps will be added here -->
+                    </div>
+                </div>
+                <div class="timeline-legend">
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: var(--error-color);"></span>
+                        Page Fault
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: var(--success-color);"></span>
+                        Page Hit
+                    </span>
+                </div>
+            </div>
+
+            <!-- Heat Map Tab -->
+            <div class="tab-content" id="heatmapTab">
+                <div class="heatmap-container">
+                    <canvas id="heatmapCanvas"></canvas>
+                </div>
+                <div class="heatmap-legend">
+                    <span>Less Accessed</span>
+                    <div class="heatmap-gradient"></div>
+                    <span>More Accessed</span>
+                </div>
+            </div>
+
+            <!-- Table Tab -->
+            <div class="tab-content" id="tableTab">
+                <div class="table-wrapper">
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>Step</th>
+                                <th>Page</th>
+                                <th>Action</th>
+                                <th>Frame 0</th>
+                                <th>Frame 1</th>
+                                <th>Frame 2</th>
+                                <th>Faults</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="7" class="table-empty">Run a simulation to see data</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Analytics -->
+        <section class="card analytics-section">
+            <div class="panel-header">
+                <h2 class="section-title">
+                    <span class="title-icon">📊</span>
+                    Advanced Analytics
+                </h2>
+                <button class="collapse-btn" data-target="analyticsContent">
+                    <span class="collapse-icon">−</span>
+                </button>
+            </div>
+            <div class="panel-content" id="analyticsContent">
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Performance Metrics</h3>
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Page Access Pattern</h3>
+                        <canvas id="accessPatternChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Thrashing Detection -->
+                <div class="thrashing-indicator" id="thrashingIndicator" style="display: none;">
+                    <div class="thrashing-icon">⚠️</div>
+                    <div class="thrashing-content">
+                        <strong>Thrashing Detected!</strong>
+                        <p>High page fault rate detected. Consider increasing the number of frames.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="card comparison-section" id="comparisonSection" style="display: none;">
+            <div class="panel-header">
+                <h2 class="section-title">
+                    <span class="title-icon">🔬</span>
+                    Algorithm Comparison
+                </h2>
+            </div>
+            <div class="comparison-content">
+                <div class="comparison-chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                <div class="comparison-stats-grid" id="comparisonStats"></div>
+                
+                <!-- Winner Card -->
+                <div class="winner-card" id="winnerCard">
+                    <div class="winner-icon">🏆</div>
+                    <div class="winner-content">
+                        <h3>Best Performer</h3>
+                        <div class="winner-name" id="winnerName">-</div>
+                        <div class="winner-stats" id="winnerStats"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Execution Log -->
+        <section class="card log-section">
+            <div class="panel-header">
+                <h2 class="section-title">
+                    <span class="title-icon">📝</span>
+                    Execution Log
+                </h2>
+                <div class="log-controls">
+                    <button class="btn btn-small" id="clearLogBtn">
+                        <span class="btn-icon">🗑️</span>
+                        Clear
+                    </button>
+                    <div class="export-dropdown">
+                        <button class="btn btn-small" id="exportDropdownBtn">
+                            <span class="btn-icon">💾</span>
+                            Export
+                            <span class="dropdown-arrow">▼</span>
+                        </button>
+                        <div class="dropdown-menu" id="exportMenu">
+                            <button class="dropdown-item" data-format="json">
+                                <span class="item-icon">📄</span>
+                                Export as JSON
+                            </button>
+                            <button class="dropdown-item" data-format="csv">
+                                <span class="item-icon">📊</span>
+                                Export as CSV
+                            </button>
+                            <button class="dropdown-item" data-format="txt">
+                                <span class="item-icon">📝</span>
+                                Export as Text
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="log-search">
+                <input type="text" id="logSearch" placeholder="🔍 Search logs..." class="log-search-input">
+                <select id="logFilter" class="log-filter-select">
+                    <option value="all">All Events</option>
+                    <option value="fault">Page Faults Only</option>
+                    <option value="hit">Page Hits Only</option>
+                </select>
+            </div>
+            <div class="log-container" id="logContainer">
+                <div class="log-empty">
+                    <div class="empty-icon">📋</div>
+                    <div class="empty-text">Run a simulation to see execution logs</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <p>Advanced Memory Management Visualizer for educational purposes</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#" id="footerTutorial">Tutorial</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Stats</h4>
+                    <p>Total Simulations: <span id="totalSims">0</span></p>
+                    <p>Algorithms: 5</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2026 Memory Management Visualizer Pro</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/utils/export.js"></script>
+    <script src="js/utils/analytics.js"></script>
+    <script src="js/algorithms/fifo.js"></script>
+    <script src="js/algorithms/lru.js"></script>
+    <script src="js/algorithms/optimal.js"></script>
+    <script src="js/algorithms/clock.js"></script>
+    <script src="js/algorithms/nfu.js"></script>
+    <script src="js/components/visualizer.js"></script>
+    <script src="js/components/controls.js"></script>
+    <script src="js/components/dashboard.js"></script>
+    <script src="js/components/tutorial.js"></script>
+    <script src="js/components/heatmap.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
